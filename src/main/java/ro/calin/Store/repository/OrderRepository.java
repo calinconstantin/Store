@@ -6,4 +6,5 @@ import ro.calin.Store.models.Order;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order,Long> {
+
 }

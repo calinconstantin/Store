@@ -12,6 +12,7 @@ public class TokenService {
 
     @Autowired
     TokenRepository tokenRepository;
+
     public Token generateToken(User user){
         Token token = new Token();
         token.setStatus("ACTIVE");
@@ -23,9 +24,9 @@ public class TokenService {
         return token;
     }
 
-    public boolean isTokenValid(String tokenCode){
+    public boolean isTokenValid(String tokenValue){
         for(Token t:tokenRepository.findAll()) {
-            if (t.getToken().equals(tokenCode) && t.getStatus().equals("ACTIVE"))
+            if (t.getToken().equals(tokenValue) && t.getStatus().equals("ACTIVE"))
                 return  true;
         }
         return false;

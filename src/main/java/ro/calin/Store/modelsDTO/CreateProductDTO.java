@@ -3,7 +3,7 @@ package ro.calin.Store.modelsDTO;
 public class CreateProductDTO {
     private String fullName;
     private Double price;
-    private Double stock;
+    private int stock;
 
     public String getFullName() {
         return fullName;
@@ -21,11 +21,11 @@ public class CreateProductDTO {
         this.price = price;
     }
 
-    public Double getStock() {
+    public int getStock() {
         return stock;
     }
 
-    public void setStock(Double stock) {
+    public void setStock(int stock) {
         this.stock = stock;
     }
 }

@@ -14,6 +14,7 @@ public class Order {
     private Long id;
     private String address;
     private boolean isConfirmed;
+    private boolean isDelivered;
 
 
     @OneToMany
@@ -63,5 +64,14 @@ public class Order {
     public void setBuyer(User buyer) {
         this.buyer = buyer;
     }
+
+    public boolean isDelivered() {
+        return isDelivered;
+    }
+
+    public void setDelivered(boolean delivered) {
+        isDelivered = delivered;
+    }
+
 
 }

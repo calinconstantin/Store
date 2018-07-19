@@ -10,6 +10,10 @@ import ro.calin.Store.modelsDTO.DeleteUserDTO;
 import ro.calin.Store.modelsDTO.LogInDTO;
 import ro.calin.Store.repository.TokenRepository;
 import ro.calin.Store.repository.UserRepository;
+import ro.calin.Store.utils.Constants;
+import ro.calin.Store.utils.Tools;
+
+import java.util.ArrayList;
 
 @Service
 public class UserService {
@@ -21,104 +25,106 @@ public class UserService {
     @Autowired
     TokenRepository tokenRepository;
 
-    public CreateUserResponseDTO CreateUser(CreateUserDTO newUser){
-        CreateUserResponseDTO response = new CreateUserResponseDTO();
+    public ArrayList<String> CreateUser(CreateUserDTO newUser){
 
-        if(newUser.getEmail()==null || newUser.getEmail().isEmpty())
-            response.setEmailNull(true);
-        else
+        ArrayList<String> response = new ArrayList<>();
+
+//____________EMAIL________________________________________________
+        if(Tools.checkNullEmpty(newUser.getEmail()))
+            response.add(Constants.errorCodeNullEmail);
+        else if(Tools.checkMail(newUser.getEmail()) && newUser.getEmail().length()>5 && newUser.getEmail().length()<30)
             {
-                for(User thisUser : userRepository.findAll())
-                    if(thisUser.getEmail().equals(newUser.getEmail()))
-                        response.setEmailExists(true);
+                for (User thisUser : userRepository.findAll())
+                    if (thisUser.getEmail().equals(newUser.getEmail()))
+                        response.add(Constants.errorCodeEmailExists);
+                response.add(Constants.correctEmail);
+                if(response.get(0).matches(Constants.errorCodeEmailExists))
+                    response.remove(1);
+            }else
+                response.add(Constants.errorCodeEmail);
 
-                if(!response.isEmailExists())
-                if(newUser.getEmail().length()>=6 && newUser.getEmail().length()<=20)
-                    {
-                        if(!newUser.getEmail().matches("[a-zA-Z]+") ||
-                           !newUser.getEmail().matches("[0-9]+") )
-                        response.setEmailNok(true);
-                    }
-                else
-                    response.setEmailNok(true);
-            }
-
-        if(newUser.getFullName()==null || newUser.getFullName().isEmpty())
-            response.setFullNameNull(true);
+//__________FULL_NAME________________________________________________
+        if(Tools.checkNullEmpty(newUser.getFullName()))
+            response.add(Constants.errorCodeNullUsername);
         else
-            {
-                if(newUser.getFullName().length()<=20)
-                {
-                    if(!newUser.getFullName().matches("[a-zA-Z]+") ||
-                       !newUser.getFullName().matches("[0-9]+") ||
-                       !newUser.getFullName().matches(" "))
-                    response.setFullNameNok(true);
-                }
-                else
-                    response.setFullNameNok(true);
-            }
+            if(Tools.checkLetter(newUser.getFullName()) && newUser.getFullName().length()>5 && newUser.getFullName().length()<30 )
+                response.add(Constants.correctUsername);
+            else
+                response.add(Constants.errorCodeUsername);
 
-        if(newUser.getPassword()==null || newUser.getPassword().isEmpty())
-            response.setPasswordNull(true);
+//_________PASSWORD___________________________________________________
+        if(Tools.checkNullEmpty(newUser.getPassword()))
+            response.add(Constants.errorCodeNullPassword);
         else
-            {
-                if(newUser.getPassword().length()>=6 && newUser.getPassword().length()<=20)
-                {
-                    if(!newUser.getPassword().matches("[a-zA-Z]+") ||
-                       !newUser.getPassword().matches("[0-9]+"))
-                        response.setPasswordNok(true);
-                }
-                else
-                    response.setPasswordNok(true);
-            }
+            if(Tools.checkLetterDigits(newUser.getPassword()) && newUser.getPassword().length()>5 && newUser.getPassword().length()<30)
+                response.add(Constants.correctPassword);
+            else
+                response.add(Constants.errorCodePassword);
 
-        if(newUser.getPhone()==null || newUser.getPhone().isEmpty())
-            response.setPhoneNull(true);
+//________PHONE_NUMBER__________________________________________________
+        if(Tools.checkNullEmpty(newUser.getPhone()))
+            response.add(Constants.errorCodeNullPhone);
         else
-            {
-                if(newUser.getPhone().length()==10)
-                {
-                    if(!newUser.getPhone().matches("[0-9]+"))
-                        response.setPhoneNok(true);
-                }
-                else
-                    response.setPhoneNok(true);
-            }
+        if(Tools.checkDigits(newUser.getPhone()) && newUser.getPhone().length()>3 && newUser.getPhone().length()<=10)
+            response.add(Constants.correctPhone);
+        else
+            response.add(Constants.errorCodePhone);
+
+        if(response.get(0).equals(Constants.correctEmail)    &&  response.get(1).equals(Constants.correctUsername) &&
+           response.get(2).equals(Constants.correctPassword) &&  response.get(3).equals(Constants.correctPhone)     )
+        {
+             response.add(Constants.userCreated);
+             User user = new User();
+             user.setEmail(newUser.getEmail());
+             user.setFullName(newUser.getFullName());
+             user.setPassword(newUser.getPassword());
+             user.setPhone(newUser.getPhone());
+             userRepository.save(user);
+        }
+        else
+             response.add(Constants.userNotCreated);
 
     return response;
     }
 
-    public boolean DeleteUser(DeleteUserDTO deleteUser){
+    public String DeleteUser(DeleteUserDTO deleteUser){
+        if(deleteUser.getAcceptAccountDeleting().equals("OK"))
         for(User thisUser: userRepository.findAll())
             {
             if(thisUser.getEmail().equals(deleteUser.getEmail()) &&
-               thisUser.getPassword().equals(deleteUser.getPassword())  )
-            if(deleteUser.getAcceptAccountDeleting().equals("OK"))
+               thisUser.getPassword().equals(deleteUser.getPassword()))
                 {
                 thisUser.setDeleted(true);
-                return true;
+                userRepository.save(thisUser);
+                return Constants.userDeleted;
                 }
             }
-        return false;
+        return Constants.userNotDeleted;
     }
 
-    public Token LogIn(LogInDTO logIn){
-        for(User thisUser: userRepository.findAll()){
+    public String LogIn(LogInDTO logIn){
+        for(User thisUser: userRepository.findAll())
+        {
+            if(thisUser.isDeleted() && thisUser.getEmail().equals(logIn.getEmail()))
+                return Constants.logInDeleted;
             if(thisUser.getEmail().equals(logIn.getEmail()) &&
-               thisUser.getPassword().equals(logIn.getPassword())  )
-                return tokenService.generateToken(thisUser);
+                thisUser.getPassword().equals(logIn.getPassword())  )
+            {
+                tokenService.generateToken(thisUser);
+                return Constants.logInOK;
+            }
         }
-        return null;
+        return Constants.logInNOK;
     }
 
-    public boolean LogOff(Token setInactive){
-
+    public String LogOff(String tokenValue){
         for(Token thisToken : tokenRepository.findAll())
-            if(thisToken.getId().equals(setInactive.getId()))
+            if(tokenValue.equals('"'+thisToken.getToken()+'"'))
             {
                 thisToken.setStatus("INACTIVE");
-                return true;
+                tokenRepository.save(thisToken);
+                return Constants.logOffOK;
             }
-        return false;
+        return Constants.logOffNOK;
     }
 }

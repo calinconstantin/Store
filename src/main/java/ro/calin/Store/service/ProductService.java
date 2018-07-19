@@ -6,6 +6,8 @@ import ro.calin.Store.models.Product;
 import ro.calin.Store.modelsDTO.CreateProductDTO;
 import ro.calin.Store.modelsDTO.CreateProductResponseDTO;
 import ro.calin.Store.repository.ProductRepository;
+import ro.calin.Store.utils.Constants;
+import ro.calin.Store.utils.Tools;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,74 +18,68 @@ public class ProductService {
     @Autowired
     ProductRepository productRepository;
 
-    public CreateProductResponseDTO CreateProduct(CreateProductDTO newProduct){
-            CreateProductResponseDTO response = new CreateProductResponseDTO();
+    public ArrayList<String> CreateProduct(CreateProductDTO newProduct){
 
-        if(newProduct.getFullName()==null || newProduct.getFullName().isEmpty())
-            response.setFullNameNull(true);
+        ArrayList<String> response = new ArrayList<>();
+//___________________FULL_NAME__________________________________________
+        if(Tools.checkNullEmpty(newProduct.getFullName()))
+            response.add(Constants.productFullNameNull);
         else
-        {
-                if(newProduct.getFullName().length()>=6 && newProduct.getFullName().length()<=20)
-                {
-                    if(!newProduct.getFullName().matches("[a-zA-Z]+") ||
-                            !newProduct.getFullName().matches("[0-9]+") )
-                        response.setFullNameNok(true);
-                }
-                else
-                    response.setFullNameNok(true);
-        }
-        if(newProduct.getPrice()==null )
-            response.setPriceNull(true);
-        else
-        {
-            if(0<newProduct.getPrice() && newProduct.getPrice()<=999.99)
-            {
-                if(!newProduct.getPrice().toString().matches("[0-9]+"))
-                    response.setPriceNok(true);
-            }
+            if(Tools.checkLetterDigits(newProduct.getFullName()) && newProduct.getFullName().length()>3 && newProduct.getFullName().length()<20)
+                response.add(Constants.productFullNameOK);
             else
-                response.setPriceNok(true);
-        }
-
-        if(newProduct.getStock()!=null )
-            response.setStockNull(true);
+                response.add(Constants.productFullNameNOK);
+//___________________PRICE__________________________________________________
+        if(Tools.checkNullEmpty(newProduct.getPrice()))
+            response.add(Constants.productPriceNull);
         else
-        {
-            if(newProduct.getStock()>0 && newProduct.getStock()<=999.99)
-            {
-                if(!newProduct.getStock().toString().matches("[0-9]+"))
-                    response.setStockNok(true);
-            }
-            else
-                response.setStockNok(true);
-        }
+        if(Tools.checkDouble(newProduct.getPrice().toString()) && newProduct.getPrice().toString().length()>=3 && newProduct.getPrice().toString().length()<20)
+            response.add(Constants.productPriceOK);
+        else
+            response.add(Constants.productPriceNOK);
+//___________________STOCK________________________________________________
+        if(Tools.checkNullEmpty(newProduct.getStock()))
+            response.add(Constants.productStockNull);
+        else
+        if(Tools.checkDigits(Integer.toString(newProduct.getStock())) && newProduct.getStock()>=0 && Integer.toString(newProduct.getStock()).length()<20)
+            response.add(Constants.productStockOK);
+        else
+            response.add(Constants.productStockNOK);
 
-        return response;
+        if(response.get(0).equals(Constants.productFullNameOK) && response.get(1).equals(Constants.productPriceOK) && response.get(2).equals(Constants.productStockOK))
+        {
+            response.add(Constants.productRegistered);
+            Product product = new Product();
+            product.setFullName(newProduct.getFullName());
+            product.setPrice(newProduct.getPrice());
+            product.setStock(newProduct.getStock());
+            productRepository.save(product);
+        }
+        else
+            response.add(Constants.productNotRegistered);
+    return response;
     }
 
-    public boolean DeleteProduct(Long idProduct){
+    public String DeleteProduct(Long idProduct){
         for(Product thisProduct : productRepository.findAll() ){
             if(idProduct.equals(thisProduct.getId()))
             {
                 thisProduct.setDeleted(true);
                 productRepository.save(thisProduct);
-                return true;
+                return Constants.productDeleted;
             }
-        }
-    return false;
+        }return Constants.productNotDeleted;
     }
 
-    public boolean UpdateProduct(Product updateProduct){
+    public String UpdateProduct(Product updateProduct){
         if(productRepository.findById(updateProduct.getId()).isPresent())
         {   productRepository.save(updateProduct);
-            return true;
+            return Constants.productUpdated;
         }
-    return false;
+    return Constants.productNotUpdated;
     }
 
     public List<Product> ViewAll(){
-        List<Product> list = new ArrayList<Product>(productRepository.findAll());
-        return list;
+        return productRepository.findAll();
     }
-
 }

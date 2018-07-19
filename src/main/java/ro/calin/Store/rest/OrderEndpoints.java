@@ -21,9 +21,17 @@ public class OrderEndpoints {
     }
 
     @RequestMapping(value="/delete", method =RequestMethod.POST)
-    public ResponseEntity<?> DeleteProduct (@RequestBody Order order){
-        return ResponseEntity.ok(orderService.deleteOrder(order.getId()));
+    public ResponseEntity<?> DeleteProduct (@RequestBody Long idOrder){
+        return ResponseEntity.ok(orderService.deleteOrder(idOrder));
     }
 
+    @RequestMapping(value="/confirm", method =RequestMethod.POST)
+    public ResponseEntity<?> ConfirmProduct (@RequestBody Long idOrder){
+        return ResponseEntity.ok(orderService.confirmOrder(idOrder));
+    }
 
+    @RequestMapping(value="/delivered", method =RequestMethod.POST)
+    public ResponseEntity<?> productDelivered (@RequestBody Long idOrder){
+        return ResponseEntity.ok(orderService.orderDelivered(idOrder));
+    }
 }

@@ -33,7 +33,8 @@ public class UserEndpoints {
     }
 
     @RequestMapping(value="/logOff", method =RequestMethod.POST)
-    public ResponseEntity<?> LogOff (@RequestBody Token token){
+    public ResponseEntity<?> LogOff (@RequestBody String token){
         return ResponseEntity.ok(userService.LogOff(token));
     }
 }
+

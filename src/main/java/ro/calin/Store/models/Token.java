@@ -6,7 +6,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 
 @Entity
-@Table(name = "tokens")
+@Table(name = "Store_tokens")
 
 public class Token {
 

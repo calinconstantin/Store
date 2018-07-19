@@ -1,6 +1,7 @@
 package ro.calin.Store.modelsDTO;
 
 public class CreateUserResponseDTO {
+    private boolean userCreated=false;
     private boolean emailNull=false;
     private boolean emailExists=false;
     private boolean emailNok=false;
@@ -10,6 +11,7 @@ public class CreateUserResponseDTO {
     private boolean phoneNok=false;
     private boolean fullNameNull=false;
     private boolean fullNameNok=false;
+
 
     public boolean isEmailNull() {
         return emailNull;
@@ -81,5 +83,13 @@ public class CreateUserResponseDTO {
 
     public void setFullNameNok(boolean fullNameNok) {
         this.fullNameNok = fullNameNok;
+    }
+
+    public boolean isUserCreated() {
+        return userCreated;
+    }
+
+    public void setUserCreated(boolean userCreated) {
+        this.userCreated = userCreated;
     }
 }
